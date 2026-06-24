@@ -1,129 +1,217 @@
-"use client";
+import Link from "next/link";
 
-import { useState, useCallback } from "react";
-import {
-  LiveKitRoom,
-  RoomAudioRenderer,
-  StartAudio,
-  useVoiceAssistant,
-  BarVisualizer,
-} from "@livekit/components-react";
-import { getToken } from "@/lib/api";
-
-const EXAMPLE_PHRASES = [
-  "I'd like to book an oil change for Friday",
-  "What appointment times are available tomorrow?",
-  "Cancel my appointment AC-1234",
+const SERVICES = [
+  { icon: "🛢️", title: "Oil Change", desc: "Quick lube & filter, in and out." },
+  { icon: "🛑", title: "Brake Work", desc: "Pads, rotors & inspections." },
+  { icon: "🔧", title: "Tune-Ups", desc: "Keep her running smooth." },
+  { icon: "🔋", title: "Batteries", desc: "Test, charge & replace." },
+  { icon: "🛞", title: "Tires", desc: "Rotate, balance & swap." },
+  { icon: "⚙️", title: "Diagnostics", desc: "We chase down the noise." },
 ];
 
-function CallUI() {
-  const { state, audioTrack } = useVoiceAssistant();
+const STEPS = [
+  { n: "01", title: "Ring us up", desc: "Hit call and start talking — no menus, no hold music." },
+  { n: "02", title: "Tell Ava", desc: "Your name, your vehicle, the service you need." },
+  { n: "03", title: "Get booked", desc: "Ava checks the calendar and locks in your slot." },
+];
 
-  const stateLabel: Record<string, string> = {
-    disconnected: "Idle",
-    connecting: "Connecting…",
-    initializing: "Starting…",
-    listening: "Listening",
-    thinking: "Thinking…",
-    speaking: "Speaking",
-  };
+// Tiles for the brutalist type-collage grid (no photos — color + big type).
+const TILES = [
+  { word: "drive", bg: "bg-ink", fg: "text-lime", style: "outline" as const },
+  { word: "🔧", bg: "bg-lime", fg: "text-ink", style: "icon" as const },
+  { word: "book", bg: "bg-orange", fg: "text-ink", style: "outline" as const },
+  { word: "🚗", bg: "bg-forest", fg: "text-lime", style: "icon" as const },
+  { word: "fix", bg: "bg-lime-soft", fg: "text-ink", style: "solid" as const },
+  { word: "tune", bg: "bg-ink", fg: "text-orange", style: "outline" as const },
+  { word: "⚙️", bg: "bg-stone", fg: "text-ink", style: "icon" as const },
+  { word: "save", bg: "bg-lime", fg: "text-ink", style: "solid" as const },
+  { word: "📞", bg: "bg-orange", fg: "text-ink", style: "icon" as const },
+];
 
-  const stateColor: Record<string, string> = {
-    listening: "text-green-400",
-    thinking: "text-yellow-400",
-    speaking: "text-blue-400",
-  };
-
+function Tile({ word, bg, fg, style }: (typeof TILES)[number]) {
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
-      <div className={`text-lg font-semibold ${stateColor[state] ?? "text-gray-400"}`}>
-        Ava is {stateLabel[state] ?? state}
-      </div>
-      <div className="w-full max-w-sm h-16">
-        <BarVisualizer state={state} trackRef={audioTrack} barCount={20} />
-      </div>
-      <RoomAudioRenderer />
-      {/* Shows only when the browser blocks autoplay; click unlocks audio. */}
-      <StartAudio
-        label="Click to enable audio"
-        className="text-sm text-blue-400 underline"
-      />
+    <div
+      className={`${bg} ${fg} aspect-square flex items-center justify-center overflow-hidden`}
+    >
+      {style === "icon" ? (
+        <span className="text-4xl sm:text-5xl">{word}</span>
+      ) : (
+        <span
+          className={`font-display font-extrabold lowercase text-3xl sm:text-4xl md:text-5xl ${
+            style === "outline" ? "outline-word" : ""
+          }`}
+        >
+          {word}
+        </span>
+      )}
     </div>
   );
 }
 
-export default function DemoPage() {
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const startCall = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getToken();
-      setToken(data.token);
-    } catch {
-      setError("Could not connect. Is the backend running?");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const endCall = useCallback(() => {
-    setToken(null);
-  }, []);
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gray-950 text-white flex flex-col items-center px-4 py-12 gap-10">
-      <div className="text-center max-w-xl">
-        <h1 className="text-4xl font-bold mb-2">AutoCare Auto Repair</h1>
-        <p className="text-gray-400 text-lg">
-          AI Voice Receptionist — speak naturally to book, check, or cancel a car repair appointment.
-        </p>
-      </div>
+    <>
+      {/* NAV */}
+      <header className="border-b-2 border-ink">
+        <nav className="max-w-7xl mx-auto px-5 sm:px-8 py-5 flex items-center justify-between">
+          <Link href="/" className="font-display font-black leading-[0.85] text-2xl tracking-tight">
+            auto
+            <br />
+            CARE<span className="align-super text-xs">™</span>
+          </Link>
+          <div className="flex items-center gap-4 sm:gap-7 text-sm">
+            <a href="#services" className="hidden sm:inline hover:text-orange">Services</a>
+            <a href="#how" className="hidden sm:inline hover:text-orange">How it works</a>
+            <Link
+              href="/call"
+              className="bold-btn bg-lime font-display font-bold px-5 py-2.5"
+            >
+              Call Ava →
+            </Link>
+          </div>
+        </nav>
+      </header>
 
-      <div className="bg-gray-900 rounded-xl p-5 max-w-md w-full">
-        <p className="text-sm text-gray-400 font-semibold mb-3 uppercase tracking-wide">Try saying…</p>
-        <ul className="space-y-2">
-          {EXAMPLE_PHRASES.map((phrase) => (
-            <li key={phrase} className="text-gray-200 text-sm flex gap-2">
-              <span className="text-blue-400">›</span>
-              <span>&ldquo;{phrase}&rdquo;</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* HERO — split: copy left, type-collage right */}
+      <section className="border-b-2 border-ink">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2">
+          {/* Left */}
+          <div className="px-5 sm:px-8 py-12 sm:py-16 lg:py-24 lg:border-r-2 border-ink flex flex-col justify-center">
+            <h1 className="font-display font-black leading-[0.95] tracking-tight text-5xl sm:text-6xl lg:text-7xl">
+              Get your car fixed without the phone-tag headache.
+            </h1>
+            <p className="mt-6 font-display text-lg sm:text-xl">
+              <span className="marker font-bold">
+                No menus, no hold music, no waiting.
+              </span>
+            </p>
+            <p className="mt-6 text-ink/80 max-w-md leading-relaxed">
+              Meet <strong>Ava</strong> — AutoCare’s AI voice receptionist. Just
+              talk, and she’ll book, check, or cancel your repair appointment.
+              Any time, day or night.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href="/call"
+                className="bold-btn bg-ink text-cream font-display font-bold text-lg px-7 py-3.5"
+              >
+                🔧 Start a call
+              </Link>
+              <a
+                href="#how"
+                className="bold-btn bg-paper font-display font-bold text-lg px-7 py-3.5"
+              >
+                How it works
+              </a>
+            </div>
+          </div>
 
-      {!token ? (
-        <div className="flex flex-col items-center gap-3">
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          <button
-            onClick={startCall}
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold px-8 py-3 rounded-full text-lg transition"
-          >
-            {loading ? "Connecting…" : "Start Call"}
-          </button>
+          {/* Right — collage */}
+          <div className="grid grid-cols-3 grid-rows-3 border-t-2 lg:border-t-0 border-ink">
+            {TILES.map((t, i) => (
+              <div
+                key={i}
+                className="border-ink [&:not(:nth-child(3n))]:border-r-2 [&:nth-child(-n+6)]:border-b-2"
+              >
+                <Tile {...t} />
+              </div>
+            ))}
+          </div>
         </div>
-      ) : (
-        <LiveKitRoom
-          token={token}
-          serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
-          connect
-          audio
-          video={false}
-          className="w-full max-w-md flex flex-col items-center gap-6"
-        >
-          <CallUI />
-          <button
-            onClick={endCall}
-            className="bg-red-600 hover:bg-red-500 text-white font-semibold px-8 py-3 rounded-full text-lg transition"
-          >
-            End Call
-          </button>
-        </LiveKitRoom>
-      )}
-    </main>
+      </section>
+
+      {/* SERVICES */}
+      <section id="services" className="border-b-2 border-ink">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
+          <h2 className="font-display font-black text-4xl sm:text-5xl tracking-tight">
+            What we wrench on
+          </h2>
+          <p className="mt-2 text-ink/70">Full-service shop. Honest work. Fair prices.</p>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
+            {SERVICES.map((s) => (
+              <div
+                key={s.title}
+                className="bold-card bg-paper p-6 flex items-start gap-4 hover:bg-lime-soft transition-colors"
+              >
+                <span className="text-4xl">{s.icon}</span>
+                <div>
+                  <h3 className="font-display font-bold text-xl">{s.title}</h3>
+                  <p className="text-ink/75 text-sm mt-1">{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="how" className="bg-ink text-cream border-b-2 border-ink">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20">
+          <h2 className="font-display font-black text-4xl sm:text-5xl tracking-tight text-lime">
+            Book in 3 steps
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6 mt-10">
+            {STEPS.map((step) => (
+              <div key={step.n} className="bold-card border-cream bg-ink p-7">
+                <div className="font-display font-black text-5xl text-lime">{step.n}</div>
+                <h3 className="font-display font-bold text-2xl mt-4">{step.title}</h3>
+                <p className="text-cream/70 text-sm mt-2">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOURS + CTA */}
+      <section className="border-b-2 border-ink">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2">
+          {/* Hours */}
+          <div className="px-5 sm:px-8 py-14 sm:py-20 md:border-r-2 border-ink">
+            <h3 className="font-display font-black text-3xl tracking-tight">Shop hours</h3>
+            <ul className="mt-5 divide-y-2 divide-ink/15 max-w-sm">
+              {[
+                ["Mon – Fri", "9:00 – 17:00"],
+                ["Saturday", "9:00 – 17:00"],
+                ["Sunday", "Closed"],
+              ].map(([d, h]) => (
+                <li key={d} className="flex justify-between py-2">
+                  <span>{d}</span>
+                  <span className="font-display font-bold">{h}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 text-sm">
+              <span className="marker">…but Ava takes calls 24/7.</span>
+            </p>
+          </div>
+
+          {/* CTA */}
+          <div className="bg-lime px-5 sm:px-8 py-14 sm:py-20 flex flex-col justify-center">
+            <h2 className="font-display font-black text-5xl sm:text-6xl leading-[0.95] tracking-tight">
+              Ready to roll?
+            </h2>
+            <p className="mt-4 font-display text-lg max-w-sm">
+              Skip the wait. Let Ava book your next appointment in under a minute.
+            </p>
+            <Link
+              href="/call"
+              className="bold-btn bg-ink text-cream font-display font-bold text-lg px-8 py-4 mt-7 self-start"
+            >
+              📞 Call the shop
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="max-w-7xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
+        <span className="font-display font-black text-lg">autoCARE™</span>
+        <span className="text-ink/60">Honest auto repair · Seattle, WA</span>
+        <Link href="/admin" className="hover:text-orange font-display font-bold">
+          Staff login →
+        </Link>
+      </footer>
+    </>
   );
 }

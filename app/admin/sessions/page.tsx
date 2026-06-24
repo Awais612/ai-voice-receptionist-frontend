@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getSessions, getSession } from "@/lib/api";
@@ -23,7 +23,7 @@ type TranscriptEntry = {
 
 type SessionWithTranscript = Session & { transcript: TranscriptEntry[] };
 
-export default function SessionsPage() {
+function SessionsContent() {
   const params = useSearchParams();
   const pw = params.get("pw") ?? "";
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -112,5 +112,13 @@ export default function SessionsPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SessionsPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-gray-950" />}>
+      <SessionsContent />
+    </Suspense>
   );
 }
