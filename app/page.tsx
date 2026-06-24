@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NavAuth } from "@/components/NavAuth";
 
 const SERVICES = [
   { icon: "🛢️", title: "Oil Change", desc: "Quick lube & filter, in and out." },
@@ -59,19 +60,7 @@ export default function LandingPage() {
             <br />
             CARE<span className="align-super text-xs">™</span>
           </Link>
-          <div className="flex items-center gap-4 sm:gap-7 text-sm">
-            <a href="#services" className="hidden sm:inline hover:text-orange">Services</a>
-            <a href="#how" className="hidden sm:inline hover:text-orange">How it works</a>
-            <Link href="/login" className="hidden sm:inline font-display font-bold hover:text-orange">
-              Log in
-            </Link>
-            <Link
-              href="/call"
-              className="bold-btn bg-lime font-display font-bold px-5 py-2.5"
-            >
-              Call Ava →
-            </Link>
-          </div>
+          <NavAuth />
         </nav>
       </header>
 
