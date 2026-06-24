@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -10,6 +11,7 @@ import {
   BarVisualizer,
 } from "@livekit/components-react";
 import { getToken } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 const EXAMPLE_PHRASES = [
   "I'd like to book an oil change for Friday",
@@ -60,9 +62,18 @@ function CallUI() {
 }
 
 export default function CallPage() {
+  const { user, loading: authLoading, logout } = useAuth();
+  const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Gate: bounce unauthenticated visitors to login (with return path).
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login?next=/call");
+    }
+  }, [authLoading, user, router]);
 
   const startCall = useCallback(async () => {
     setLoading(true);
@@ -70,23 +81,47 @@ export default function CallPage() {
     try {
       const data = await getToken();
       setToken(data.token);
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.message === "UNAUTHENTICATED") {
+        router.replace("/login?next=/call");
+        return;
+      }
       setError("Could not connect. Is the backend running?");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   const endCall = useCallback(() => setToken(null), []);
 
+  // While checking auth or redirecting, show nothing substantial.
+  if (authLoading || !user) {
+    return (
+      <main className="flex-1 flex items-center justify-center">
+        <p className="font-display font-bold text-ink/60">Loading…</p>
+      </main>
+    );
+  }
+
   return (
     <main className="flex-1 flex flex-col items-center px-5 py-10 sm:py-16 gap-8">
-      <Link
-        href="/"
-        className="self-start font-display font-bold text-sm text-ink/70 hover:text-orange"
-      >
-        ← Back to shop
-      </Link>
+      <div className="w-full flex items-center justify-between">
+        <Link
+          href="/"
+          className="font-display font-bold text-sm text-ink/70 hover:text-orange"
+        >
+          ← Back to shop
+        </Link>
+        <div className="flex items-center gap-3 text-sm">
+          <span className="text-ink/70">Hi, <strong>{user.name}</strong></span>
+          <button
+            onClick={() => logout().then(() => router.push("/"))}
+            className="font-display font-bold text-ink/70 hover:text-orange underline"
+          >
+            Log out
+          </button>
+        </div>
+      </div>
 
       <div className="text-center max-w-xl">
         <p className="font-display font-bold bg-lime inline-block px-3 py-1 text-xs mb-4 bold-card border-2! rounded-full">

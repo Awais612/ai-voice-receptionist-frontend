@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Space_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth-context";
 
 // Heavy grotesk for big bold headlines.
 const archivo = Archivo({
@@ -32,7 +33,9 @@ export default function RootLayout({
       lang="en"
       className={`${archivo.variable} ${spaceMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
